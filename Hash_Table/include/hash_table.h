@@ -9,6 +9,8 @@
         LinkedList * hash_sets;
         size_t (*hash_function)(Elem_t object);
         size_t size;
+        float load_factor;
+        float dispersion;
     };
 
     enum HashTableErrorsMasks {

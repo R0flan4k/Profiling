@@ -11,5 +11,7 @@
                     expr_string, line, date, file);
             exit(EXIT_FAILURE);
         }
+
+        return;
     }
 #endif // NDEBUG

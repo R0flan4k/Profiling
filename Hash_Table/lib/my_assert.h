@@ -28,7 +28,7 @@
     #endif // MY_ASSERT_H
 #else // NDEBUG
     
-    #define NDEBUG
+    #define MY_ASSERT(X)
 
 #endif // NDEBUG
 

@@ -44,6 +44,7 @@ LstError_t list_ctor(LinkedList * lst)
         errors |= LIST_ERROR_CANT_ALLOCATE_MEMORY;
         return errors;
     }
+    lst->size = 0;
     lst->capacity = START_CAPACITY;
 
     set_list_head(lst, DUMMY_NODE_ID);
@@ -90,6 +91,7 @@ LstError_t list_dtor(LinkedList * lst)
     lst->next = (size_t *) NULL;
     lst->prev = (int *) NULL;
 
+    lst->size     = TRASH_VALUE;
     lst->capacity = TRASH_VALUE;
     lst->head     = TRASH_VALUE;
     lst->tail     = TRASH_VALUE;
@@ -105,6 +107,8 @@ LstError_t list_vtor(LinkedList * lst)
 
     LstError_t errors = 0;
 
+    // if (lst->size != list_get_size(lst))
+    //     errors |= LIST_ERROR_INVALID_SIZE;
     if (lst->capacity == 0)
         errors |= LIST_ERROR_INVALID_CAPACITY;
     if (lst->head >= lst->capacity)
@@ -240,6 +244,7 @@ LstError_t list_insert(LinkedList * lst, size_t elem_id, Elem_t val)
     lst->prev[past_elem_next] = (int) new_val_id;
     lst->prev[new_val_id] = (int) elem_id;
 
+    lst->size++;
     set_list_head(lst, lst->next[DUMMY_NODE_ID]);
     set_list_tail(lst, lst->prev[DUMMY_NODE_ID]);
 
@@ -300,6 +305,7 @@ LstError_t list_delete(LinkedList * lst, size_t elem_id)
     lst->next[elem_id] = past_free;
     lst->prev[elem_id] = -1;
 
+    lst->size--;
     set_list_head(lst, lst->next[DUMMY_NODE_ID]);
     set_list_tail(lst, lst->prev[DUMMY_NODE_ID]);
 

@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+#include <math.h>
 
 #include "hash_table.h"
 #include "list.h"
@@ -7,7 +9,9 @@
 #include "file_processing.h"
 
 const size_t STRING_SIZE = 64;
-const char * HIST_SCRIPT_NAME = "./python_scripts/hist_script";
+const char * HIST_DATA_NAME = "./python_scripts/hist_data";
+
+static HashTError_t hash_table_calculate_load_factor_and_dispersion(HashTable * hash_table);
 
 HashTError_t hash_table_ctor(HashTable * hash_table, const size_t start_size)
 {
@@ -19,6 +23,8 @@ HashTError_t hash_table_ctor(HashTable * hash_table, const size_t start_size)
     }
     hash_table->size = start_size;
     hash_table->hash_function = NULL;
+    hash_table->load_factor = 0;
+    hash_table->dispersion = 0;
 
     for (size_t i = 0; i < start_size; i++)
     {
@@ -42,6 +48,8 @@ HashTError_t hash_table_dtor(HashTable * hash_table)
     free(hash_table->hash_sets);
     hash_table->size = 0;
     hash_table->hash_function = NULL;
+    hash_table->load_factor = 0;
+    hash_table->dispersion = 0;
 
     return 0;
 }
@@ -56,6 +64,8 @@ HashTError_t hash_table_clear(HashTable * hash_table)
         if (list_clear(&hash_table->hash_sets[i]))
             return HASH_TABLE_ERROR_CANT_CLEAR;
     }
+    hash_table->load_factor = 0;
+    hash_table->dispersion = 0;
 
     return 0;
 }
@@ -65,36 +75,52 @@ HashTError_t hash_table_load_hist(HashTable * hash_table)
 {
     MY_ASSERT(hash_table);
 
-    static size_t script_num = 0;
-    char script_name[STRING_SIZE] = "";
-    sprintf(script_name, "%s%zd.py", HIST_SCRIPT_NAME, script_num);
-    script_num++;
+    static size_t data_num = 0;
+    char data_name[STRING_SIZE] = "";
+    sprintf(data_name, "%s%zd.data", HIST_DATA_NAME, data_num);
+    data_num++;
 
     FILE * fp = NULL;
-    if (!(fp = file_open(script_name, "w")))
+    if (!(fp = file_open(data_name, "w")))
     {
         return HASH_TABLE_ERROR_CANT_OPEN_LOAD_FACTOR_FILE;
     }
 
-    fprintf(fp, "from plotly import graph_objects as go\n\
-                 \rx = [ ");
     for (size_t i = 0; i < hash_table->size; i++)
     {
-        fprintf(fp, "\"%zd\", ", i);
+        fprintf(fp, "%zd ", i);
     }
-    fprintf(fp, "]\n\
-                 \ry = [ ");
+    fprintf(fp, "\n");
     for (size_t i = 0; i < hash_table->size; i++)
     {
-        fprintf(fp, "\"%zd\", ", list_get_size(&hash_table->hash_sets[i]));
+        fprintf(fp, "%zd ", hash_table->hash_sets[i].size);
     }
-    fprintf(fp, "]\n\
-                 \rfig = go.Figure()\n\
-                 \rfig.add_trace(go.Histogram(histfunc=\"sum\", y=y, x=x, name=\"sum\"))\n\
-                 \rfig.show()\n");
+    fprintf(fp, "\n%.2f\n%.2f", hash_table->load_factor, hash_table->dispersion);
 
     fclose(fp);
     
+    return 0;
+}
+
+
+static HashTError_t hash_table_calculate_load_factor_and_dispersion(HashTable * hash_table)
+{
+    MY_ASSERT(hash_table);
+
+    size_t load_sum = 0;
+    for (size_t i = 0; i < hash_table->size; i++)
+    {
+        load_sum += hash_table->hash_sets[i].size;
+    }
+    hash_table->load_factor =  (float) load_sum / (float) hash_table->size;
+
+    float dispersion_sum = 0;
+    for (size_t i = 0; i < hash_table->size; i++)
+    {
+        dispersion_sum += powf((float) hash_table->hash_sets[i].size - hash_table->load_factor, 2);
+    }
+    hash_table->dispersion = dispersion_sum / (float) hash_table->size;
+
     return 0;
 }
 
@@ -120,6 +146,7 @@ HashTError_t hash_table_fill(HashTable * hash_table, Elem_t * objects, size_t ob
             }
         }
     }
+    hash_table_calculate_load_factor_and_dispersion(hash_table);
 
     return 0;
 }

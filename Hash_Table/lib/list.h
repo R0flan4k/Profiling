@@ -29,12 +29,14 @@
         LIST_ERROR_CANT_INSERT_TO_FREE  = 1 << 11,
         LIST_ERROR_CANT_DELETE_FREE     = 1 << 12,
         LIST_ERROR_CANT_CLEAR           = 1 << 13,
+        LIST_ERROR_INVALID_SIZE         = 1 << 14,
     };
 
     struct LinkedList {
         Elem_t * data;
         size_t * next;
         int * prev;
+        size_t size;
         size_t capacity;
         size_t head;
         size_t tail;
