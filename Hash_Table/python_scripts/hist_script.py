@@ -4,7 +4,7 @@ import plotly.express as px
 for i in range(4):
     data = []
 
-    with open("./Hash_Table/python_scripts/hist_data" + str(i) + ".data") as f:
+    with open("./Hash_Table_1st_opt/python_scripts/hist_data" + str(i) + ".data") as f:
         for line in f:
             data.append([str(x) for x in line.split()])
                     
@@ -17,5 +17,5 @@ for i in range(4):
     fig.update_layout(xaxis_title_text = label, title_text = "Hash Table load: hash function " + str(i))
 
                     
-    fig.write_image("./Hash_Table/python_scripts/hist" + str(i) + ".png")
-    fig.write_html("./Hash_Table/python_scripts/hist" + str(i) + ".html")
+    fig.write_image("./Hash_Table_1st_opt/python_scripts/hist" + str(i) + ".png")
+    fig.write_html("./Hash_Table_1st_opt/python_scripts/hist" + str(i) + ".html")

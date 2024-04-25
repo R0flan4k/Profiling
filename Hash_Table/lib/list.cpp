@@ -12,6 +12,7 @@ const size_t START_CAPACITY = 32;
 const size_t DUMMY_NODE_ID = 0;
 const size_t TRASH_VALUE = 0xAB1BA5;
 const size_t OUTPUT_BUFFER_SIZE = 512;
+const Elem_t DATA_TRASH_VALUE = NULL;
 const char * BLUE_COLOR = "#004bc4";
 const char * GREEN_COLOR = "#0f9900";
 
@@ -54,7 +55,7 @@ LstError_t list_ctor(LinkedList * lst)
 
     for (size_t i = 1; i < START_CAPACITY; i++)
     {
-        lst->data[i] = NULL;
+        lst->data[i] = DATA_TRASH_VALUE;
         lst->next[i] = i % (START_CAPACITY - 1) + 1;
         lst->prev[i] = -1;
     }
@@ -163,14 +164,18 @@ void list_dump_internal(LinkedList * lst,
     for (size_t i = 1; i < lst->capacity; i++)
     {
         fprintf(fp, "\t\telem%zd [label = \"{[%zd] ", i, i);
-
-        if (lst->data[i] == NULL)
+        char buffer[32] = "";
+        if (lst->data[i])
+        {
+            for (size_t k = 0; k < 32 && ((char *) lst->data[i])[k] != '\0'; k++)
+            {
+                buffer[k] = ((char *) lst->data[i])[k];
+            }
+            fprintf(fp, "%s", buffer);
+        }
+        else 
         {
             fprintf(fp, "TRASH");
-        }
-        else
-        {
-            fprintf(fp, ELEM_SPEC, lst->data[i]);
         }
 
         fprintf(fp, " | {prev = %d | next = %zd } }\", color = \"%s\" ];\n",
@@ -215,6 +220,7 @@ LstError_t list_insert(LinkedList * lst, size_t elem_id, Elem_t val)
 
     if (errors = list_vtor(lst))
     {
+        printf("vtor");
         return errors;
     }
 
@@ -228,7 +234,6 @@ LstError_t list_insert(LinkedList * lst, size_t elem_id, Elem_t val)
     if (lst->prev[elem_id] == -1)
     {
         errors |= LIST_ERROR_CANT_INSERT_TO_FREE;
-
         return errors;
     }
 
@@ -260,20 +265,6 @@ LstError_t list_push_front(LinkedList * lst, Elem_t val)
 }
 
 
-bool is_in_list(LinkedList * lst, Elem_t word)
-{
-    MY_ASSERT(lst);
-
-    for (size_t i = lst->head; lst->prev[i] != -1 && i != DUMMY_NODE_ID; i = lst->next[i])
-    {
-        if (!strcmp(word, lst->data[i]))
-            return true;
-    }
-
-    return false;
-}
-
-
 LstError_t list_delete(LinkedList * lst, size_t elem_id)
 {
     MY_ASSERT(lst);
@@ -296,7 +287,7 @@ LstError_t list_delete(LinkedList * lst, size_t elem_id)
     size_t past_next = lst->next[elem_id];
     int past_prev = lst->prev[elem_id];
 
-    lst->data[elem_id] = NULL;
+    lst->data[elem_id] = DATA_TRASH_VALUE;
     lst->free = (int) elem_id;
 
     lst->next[past_prev] = past_next;
@@ -317,11 +308,17 @@ LstError_t list_clear(LinkedList * lst)
 {
     MY_ASSERT(lst);
 
-    for (size_t i = lst->head; lst->prev[i] != -1 && i != DUMMY_NODE_ID; i = lst->head)
+    lst->size = 0;
+    lst->free = 1;
+
+    for (size_t i = 0; i < lst->capacity; i++)
     {
-        if (list_delete(lst, i))
-            return LIST_ERROR_CANT_CLEAR;
+        lst->data[i] = DATA_TRASH_VALUE;
+        lst->next[i] = i % (lst->capacity - 1) + 1;
+        lst->prev[i] = -1;
     }
+    set_list_head(lst, DUMMY_NODE_ID);
+    set_list_tail(lst, DUMMY_NODE_ID);
 
     return 0;
 }

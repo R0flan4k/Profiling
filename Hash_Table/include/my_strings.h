@@ -4,7 +4,7 @@
     #include <string.h>
     #include <ctype.h>
 
-    char * skip_spaces(char * buffer);
+    char * skip_spaces(const char * buffer);
     char * get_next_word(char * buffer);
     void show_text(const char * text5, const size_t size);
     size_t get_strings_num(char * buffer);

@@ -1,9 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <x86intrin.h>
 
 #include "my_strings.h"
 #include "my_assert.h"
 #include "hash_table.h"
+#include "hash_functions.h"
 #include "file_processing.h"
 #include "flags.h"
 
@@ -36,31 +38,30 @@ int main(int argc, char * argv[])
     buffer[buffer_size - 1] = '\0';
 
     size_t words_num = get_words_num(buffer);
-    const char * * pointers = NULL;
-    if (!(pointers = (const char * *) calloc(words_num, sizeof(char *))))
+    __m256i * word_vectors = NULL;
+    if (!(word_vectors = (__m256i *) calloc(words_num, sizeof(__m256i))))
     {
         free(buffer);
         return 1;
     }
-    get_pointers(buffer, pointers, words_num);
+    get_word_vectors(buffer, word_vectors, words_num);
 
     HashTable hash_table = {};
+    const size_t hash_table_size = 100;
     HashTError_t ht_errors = 0;
-    ht_errors |= hash_table_ctor(&hash_table, HASH_TABLE_SIZE);
-    size_t (*test_hash_functions[])(Elem_t) = {hash_table_function_const, hash_table_function_fl,   
-                                               hash_table_function_len,   hash_table_function_sum};
+    HashFunction_t test_hash_functions[] = {hash_table_function_const, hash_table_function_fl,   
+                                            hash_table_function_len,   hash_table_function_sum};
     size_t test_hash_functions_num = sizeof(test_hash_functions) / sizeof(test_hash_functions[0]);
 
     for (size_t i = 0; i < test_hash_functions_num; i++)
     {
-        ht_errors |= hash_table_set_function(&hash_table, test_hash_functions[i]);
-        ht_errors |= hash_table_fill(&hash_table, pointers, words_num);
+        ht_errors |= hash_table_ctor(&hash_table, hash_table_size, test_hash_functions[i]);
+        ht_errors |= hash_table_fill(&hash_table, word_vectors, words_num);
         ht_errors |= hash_table_load_hist(&hash_table);
-        ht_errors |= hash_table_clear(&hash_table);
+        ht_errors |= hash_table_dtor(&hash_table);
     }
-    ht_errors |= hash_table_dtor(&hash_table);
     
     free(buffer);
-    free(pointers);
+    free(word_vectors);
     return ht_errors;
 }

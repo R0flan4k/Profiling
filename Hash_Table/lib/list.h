@@ -2,12 +2,12 @@
     #define LIST_H
 
     #include <stdio.h>
+    #include <x86intrin.h>
 
-    typedef const char * Elem_t;
+    typedef __m256i * Elem_t;
     typedef int LstError_t;
 
     #define list_dump(lst) list_dump_internal((lst), #lst, __func__, __LINE__, __FILE__)
-    #define ELEM_SPEC "%s"
 
     enum ListResizeModes {
         LIST_RESIZE_EXPAND,
@@ -48,7 +48,6 @@
     LstError_t list_vtor(LinkedList * lst);
     LstError_t list_clear(LinkedList * lst);
     size_t list_get_size(LinkedList * lst);
-    bool is_in_list(LinkedList * lst, Elem_t word);
     void list_dump_internal(LinkedList * lst,
                             const char * lst_name, const char * func,
                             const int line, const char * file);

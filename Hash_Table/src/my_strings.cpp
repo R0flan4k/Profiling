@@ -89,16 +89,16 @@ void show_strings(const char * const * strings, const size_t strings_num)
 }
 
 
-char * skip_spaces(char * buffer)
+char * skip_spaces(const char * buffer)
 {
     MY_ASSERT(buffer);
 
-    char * buffer_ptr = buffer;
+    const char * buffer_ptr = buffer;
 
     while (isspace(*buffer_ptr))
         buffer_ptr++;
 
-    return buffer_ptr;
+    return const_cast <char *> (buffer_ptr);
 }
 
 
