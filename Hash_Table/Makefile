@@ -8,14 +8,20 @@ LIBDIR = ./lib
 # OBJ = $(OBJDIR)/*.o $(LIBDIR)/*.o
 SRC = $(wildcard $(SRCDIR)/*.cpp) $(LIBDIR)/*.cpp
 OBJ = $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SRC))
+ASM = $(wildcard $(SRCDIR)/*.s)
+ASMO = $(patsubst $(SRCDIR)/%.s, $(OBJDIR)/%.o, $(ASM))
 CXXFLAGS += $(IFLAGS)
 
-all : $(OBJ)
+all : $(OBJ) $(ASMO)
 	@$(CXX) $(IFLAGS) $(CFLAGS) $^ -o hash_table -mavx -march=haswell
 
 $(OBJDIR)/%.o : $(SRCDIR)/%.cpp
 	@mkdir -p $(@D)
 	@$(CXX) $(IFLAGS) $(CXXFLAGS) -c $^ -o $@ -mavx -march=haswell
+
+$(ASMO) : $(ASM)
+	@nasm -g -F dwarf -f elf64 $(ASM) -o $(ASMO)
+
 
 .PHONY: clean
 clean:

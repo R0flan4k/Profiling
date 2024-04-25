@@ -6,6 +6,9 @@
 #include "my_assert.h"
 #include "file_processing.h"
 
+extern "C" int _verificate_next_arr(size_t * ref_arr, size_t capacity);
+extern "C" int _verificate_prev_arr(int * ref_arr, size_t capacity);
+
 const char * LIST_DUMP_FILE_NAME = "./graphviz/list_dump.dot";
 
 const size_t START_CAPACITY = 32;
@@ -528,27 +531,31 @@ static LstError_t list_reference_arrays_vtor(LinkedList * lst)
         return errors;
     }
 
-    bool next_check_necessity = true;
+    // bool next_check_necessity = true;
     bool prev_check_necessity = true;
-    for (size_t i = 0; i < lst->capacity; i++)
-    {
-        if ((lst->next[i] > lst->capacity) &&
-            next_check_necessity)
-        {
-            errors |= LIST_ERROR_INVALID_NEXT;
-            next_check_necessity = false;
-        }
+    if (_verificate_next_arr(lst->next, lst->capacity))
+        errors |= LIST_ERROR_INVALID_NEXT;
+    if (_verificate_prev_arr(lst->prev, lst->capacity))
+        errors |= LIST_ERROR_INVALID_PREV;
+    // for (size_t i = 0; i < lst->capacity; i++)
+    // {
+    //     if ((lst->next[i] > lst->capacity) &&
+    //         next_check_necessity)
+    //     {
+    //         errors |= LIST_ERROR_INVALID_NEXT;
+    //         next_check_necessity = false;
+    //     }
 
-        if ((lst->prev[i] < -1 && lst->prev[i] > (int) lst->capacity) &&
-            prev_check_necessity)
-        {
-            errors |= LIST_ERROR_INVALID_PREV;
-            prev_check_necessity = false;
-        }
+    //     if ((lst->prev[i] < -1 && lst->prev[i] > (int) lst->capacity) &&
+    //         prev_check_necessity)
+    //     {
+    //         errors |= LIST_ERROR_INVALID_PREV;
+    //         prev_check_necessity = false;
+    //     }
 
-        if (!next_check_necessity && !prev_check_necessity)
-            break;
-    }
+    //     if (/*!next_check_necessity &&*/ !prev_check_necessity)
+    //         break;
+    // }
 
     return errors;
 }
